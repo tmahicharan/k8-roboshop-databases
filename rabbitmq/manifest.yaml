@@ -19,7 +19,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
- name: rabbitmq
+ name: rabbitmq-headless
  namespace: roboshop
 spec:
   clusterIP: None
