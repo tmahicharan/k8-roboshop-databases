@@ -91,7 +91,6 @@ spec:
         component: frontend
         project: roboshop
     spec:
-      type: loadBalancer
       containers:
       - name: frontend
         image: mahicharan/frontend:v1
@@ -137,6 +136,7 @@ metadata:
  name: frontend
  namespace: roboshop
 spec:
+  type: loadBalancer
   selector:
    component: frontend
    project: roboshop
