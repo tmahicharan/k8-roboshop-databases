@@ -136,7 +136,7 @@ metadata:
  name: frontend
  namespace: roboshop
 spec:
-  type: loadBalancer
+  type: LoadBalancer
   selector:
    component: frontend
    project: roboshop
