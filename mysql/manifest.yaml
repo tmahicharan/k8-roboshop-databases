@@ -1,0 +1,86 @@
+#service #headless service #statefulset #pvc
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: mysql
+ namespace: roboshop
+data:
+ my.cnf: |
+  [mysqld]
+  innodb_redo_log_capacity = 2G
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+ name: mysql
+ namespace: roboshop
+spec:
+  selector:
+   component: mysql
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+# headless service
+apiVersion: v1
+kind: Service
+metadata:
+ name: mysql
+ namespace: roboshop
+spec:
+  clusterIP: None
+  selector:
+   component: mysql
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+#statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: roboshop
+spec:
+  replicas: 1
+  selector:
+    # these labels are used to select pods
+    matchLabels:
+      app: mysql
+      purpose: stateful-demo
+  serviceName: "mysql-headless"
+  # pod definition
+  template:
+    metadata:
+      labels:
+        app: mysql
+        purpose: stateful-demo
+    spec:
+      containers:
+      - name: mysql
+        image: mahicharan/mysql:v1
+        volumeMounts:
+        - name: mysql
+          mountPath: /var/lib/mysql
+        - name: mysql-conf
+          mountPath: /etc/mysql/conf.d/my.cnf
+          subPath: my.cnf
+      volumes:
+       - name: mysql-conf
+         configMap:
+           name: mysql
+  # This is PVC
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"
+      resources:
+        requests:
+          storage: 1Gi

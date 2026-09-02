@@ -1,0 +1,70 @@
+#service #headless service #statefulset #pvc
+
+#service
+apiVersion: v1
+kind: Service
+metadata:
+ name: redis
+ namespace: roboshop
+spec:
+  selector:
+   component: redis
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+# headless service
+apiVersion: v1
+kind: Service
+metadata:
+ name: redis
+ namespace: roboshop
+spec:
+  clusterIP: None
+  selector:
+   component: redis
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+#statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: roboshop
+spec:
+  replicas: 1
+  selector:
+    # these labels are used to select pods
+    matchLabels:
+      app: redis
+      purpose: stateful-demo
+  serviceName: "redis-headless"
+  # pod definition
+  template:
+    metadata:
+      labels:
+        app: redis
+        purpose: stateful-demo
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.0
+        volumeMounts:
+        - name: redis
+          mountPath: /data
+  # This is PVC
+  volumeClaimTemplates:
+  - metadata:
+      name: redis
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"
+      resources:
+        requests:
+          storage: 1Gi

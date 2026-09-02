@@ -1,0 +1,70 @@
+#service #headless service #statefulset #pvc
+
+#service
+apiVersion: v1
+kind: Service
+metadata:
+ name: mongodb
+ namespace: roboshop
+spec:
+  selector:
+   component: mongodb
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+---
+# headless service
+apiVersion: v1
+kind: Service
+metadata:
+ name: mongodb
+ namespace: roboshop
+spec:
+  clusterIP: None
+  selector:
+   component: mongodb
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+---
+#statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: roboshop
+spec:
+  replicas: 1
+  selector:
+    # these labels are used to select pods
+    matchLabels:
+      app: mongodb
+      purpose: stateful-demo
+  serviceName: "mongodb-headless"
+  # pod definition
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        purpose: stateful-demo
+    spec:
+      containers:
+      - name: mongodb
+        image: mahicharan/mongodb:v1
+        volumeMounts:
+        - name: mongodb
+          mountPath: /data/db
+  # This is PVC
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"
+      resources:
+        requests:
+          storage: 1Gi

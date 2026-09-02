@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: payment
+ namespace: roboshop
+data:
+  CART_HOST: "cart"
+  CART_PORT: "8080"
+  USER_HOST: "user"
+  USER_PORT: "8080"
+  AMQP_HOST: "rabbitmq"
+  AMQP_USER: "roboshop"
+  AMQP_PASS: "roboshop123"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: roboshop
+  # these are replica set labels
+  labels:
+    component: payment
+    project: roboshop
+spec:
+  replicas: 1
+  selector:
+    # these labels are used to select pods
+    matchLabels:
+      component: payment
+      project: roboshop
+  # pod definition
+  template:
+    metadata:
+      labels:
+        component: payment
+        project: roboshop
+    spec:
+      containers:
+      - name: payment
+        image: mahicharan/payment:v1
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: payment
+        ports:
+        - name: liveness-port
+          containerPort: 8080
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 1
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 1
+          periodSeconds: 15
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+ name: payment
+ namespace: roboshop
+spec:
+  selector:
+   component: payment
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+#horizontal pod autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payment
+  namespace: roboshop
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payment
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 5
+
+ 

@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: catalogue
+ namespace: roboshop
+data:
+ MONGO: "true"
+ MONGO_URL: "mongodb://mongodb:27017/catalogue"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  namespace: roboshop
+  # these are replica set labels
+  labels:
+    component: catalogue
+    project: roboshop
+spec:
+  replicas: 1
+  selector:
+    # these labels are used to select pods
+    matchLabels:
+      component: catalogue
+      project: roboshop
+  # pod definition
+  template:
+    metadata:
+      labels:
+        component: catalogue
+        project: roboshop
+    spec:
+      containers:
+      - name: catalogue
+        image: mahicharan/catalogue:v1
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: catalogue
+        ports:
+        - name: liveness-port
+          containerPort: 8080
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 1
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 1
+          periodSeconds: 15
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+ name: catalogue
+ namespace: roboshop
+spec:
+  selector:
+   component: catalogue
+   project: roboshop
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+#horizontal pod autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: catalogue
+  namespace: roboshop
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: catalogue
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 5
+
+ 
