@@ -51,15 +51,15 @@ spec:
   selector:
     # these labels are used to select pods
     matchLabels:
-      app: mysql
-      purpose: stateful-demo
+      component: mysql
+      project: roboshop
   serviceName: "mysql-headless"
   # pod definition
   template:
     metadata:
       labels:
-        app: mysql
-        purpose: stateful-demo
+        component: mysql
+        project: roboshop
     spec:
       containers:
       - name: mysql
