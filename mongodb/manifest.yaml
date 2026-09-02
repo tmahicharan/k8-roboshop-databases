@@ -40,17 +40,15 @@ metadata:
 spec:
   replicas: 1
   selector:
-    # these labels are used to select pods
     matchLabels:
-      app: mongodb
-      purpose: stateful-demo
+      component: mongodb
+      project: roboshop
   serviceName: "mongodb-headless"
-  # pod definition
   template:
     metadata:
       labels:
-        app: mongodb
-        purpose: stateful-demo
+        component: mongodb
+        project: roboshop
     spec:
       containers:
       - name: mongodb
@@ -58,7 +56,6 @@ spec:
         volumeMounts:
         - name: mongodb
           mountPath: /data/db
-  # This is PVC
   volumeClaimTemplates:
   - metadata:
       name: mongodb

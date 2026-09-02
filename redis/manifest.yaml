@@ -42,15 +42,15 @@ spec:
   selector:
     # these labels are used to select pods
     matchLabels:
-      app: redis
-      purpose: stateful-demo
+      component: redis
+      project: roboshop
   serviceName: "redis-headless"
   # pod definition
   template:
     metadata:
       labels:
-        app: redis
-        purpose: stateful-demo
+        component: redis
+        project: roboshop
     spec:
       containers:
       - name: redis

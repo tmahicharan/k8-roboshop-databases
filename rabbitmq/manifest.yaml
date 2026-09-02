@@ -42,15 +42,15 @@ spec:
   selector:
     # these labels are used to select pods
     matchLabels:
-      app: rabbitmq
-      purpose: stateful-demo
+      component: rabbitmq
+      project: roboshop
   serviceName: "rabbitmq-headless"
   # pod definition
   template:
     metadata:
       labels:
-        app: rabbitmq
-        purpose: stateful-demo
+        component: rabbitmq
+        project: roboshop
     spec:
       containers:
       - name: rabbitmq
