@@ -50,13 +50,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: liveness-port
           failureThreshold: 1
           periodSeconds: 15
         readinessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: liveness-port
           failureThreshold: 1
           periodSeconds: 15
 ---
@@ -81,6 +81,9 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: catalogue
   namespace: roboshop
+  labels:
+    component: catalogue
+    project: roboshop
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

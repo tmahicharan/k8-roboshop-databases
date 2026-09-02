@@ -83,6 +83,9 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: shipping
   namespace: roboshop
+  labels:
+    component: shipping
+    project: roboshop
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
